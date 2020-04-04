@@ -1,0 +1,772 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer0-app
+spec:
+  selector:
+    matchLabels:
+        app: orderer0          
+  template:
+    metadata:
+      labels:
+        app: orderer0
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: genesis-block
+          configMap:
+            name: kubetest-genesis
+        containers:
+        - name: orderer0
+          image: hyperledger/fabric-orderer:1.4.6
+          command: ["sh","-c","orderer"]
+          env:
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: CONFIGTX_ORDERER_ADDRESSES
+            value: '[orderer0:7050]'
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: "7050"
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          ports:
+          - containerPort: 7050
+            name: orderer-port
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/hyperledger/orderer/msp
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer0.perftest.com/msp
+          - mountPath: /var/hyperledger/orderer/tls
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer0.perftest.com/tls
+          - mountPath: /var/hyperledger/orderer
+            name: genesis-block
+---
+
+#Services
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: orderer0-svc
+  name: orderer0
+  namespace: default
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 7050
+      nodePort: 30001
+      targetPort: 7050
+  selector:
+    app: orderer0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer1-app
+spec:
+  selector:
+    matchLabels:
+        app: orderer1          
+  template:
+    metadata:
+      labels:
+        app: orderer1
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: genesis-block
+          configMap:
+            name: kubetest-genesis
+        containers:
+        - name: orderer1
+          image: hyperledger/fabric-orderer:1.4.6
+          command: ["sh","-c","orderer"]
+          env:
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: CONFIGTX_ORDERER_ADDRESSES
+            value: '[orderer1:7050]'
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: "7050"
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          ports:
+          - containerPort: 7050
+            name: orderer-port
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/hyperledger/orderer/msp
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer1.perftest.com/msp
+          - mountPath: /var/hyperledger/orderer/tls
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer1.perftest.com/tls
+          - mountPath: /var/hyperledger/orderer
+            name: genesis-block
+---
+
+#Services
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: orderer1-svc
+  name: orderer1
+  namespace: default
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 7050
+      nodePort: 30002
+      targetPort: 7050
+  selector:
+    app: orderer1
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer2-app
+spec:
+  selector:
+    matchLabels:
+        app: orderer2          
+  template:
+    metadata:
+      labels:
+        app: orderer2
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: genesis-block
+          configMap:
+            name: kubetest-genesis
+        containers:
+        - name: orderer2
+          image: hyperledger/fabric-orderer:1.4.6
+          command: ["sh","-c","orderer"]
+          env:
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: CONFIGTX_ORDERER_ADDRESSES
+            value: '[orderer2:7050]'
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: "7050"
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          ports:
+          - containerPort: 7050
+            name: orderer-port
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/hyperledger/orderer/msp
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer2.perftest.com/msp
+          - mountPath: /var/hyperledger/orderer/tls
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer2.perftest.com/tls
+          - mountPath: /var/hyperledger/orderer
+            name: genesis-block
+---
+
+#Services
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: orderer2-svc
+  name: orderer2
+  namespace: default
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 7050
+      nodePort: 30003
+      targetPort: 7050
+  selector:
+    app: orderer2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer3-app
+spec:
+  selector:
+    matchLabels:
+        app: orderer3          
+  template:
+    metadata:
+      labels:
+        app: orderer3
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: genesis-block
+          configMap:
+            name: kubetest-genesis
+        containers:
+        - name: orderer3
+          image: hyperledger/fabric-orderer:1.4.6
+          command: ["sh","-c","orderer"]
+          env:
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: CONFIGTX_ORDERER_ADDRESSES
+            value: '[orderer3:7050]'
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: "7050"
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          ports:
+          - containerPort: 7050
+            name: orderer-port
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/hyperledger/orderer/msp
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer3.perftest.com/msp
+          - mountPath: /var/hyperledger/orderer/tls
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer3.perftest.com/tls
+          - mountPath: /var/hyperledger/orderer
+            name: genesis-block
+---
+
+#Services
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: orderer3-svc
+  name: orderer3
+  namespace: default
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 7050
+      nodePort: 30004
+      targetPort: 7050
+  selector:
+    app: orderer3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderer4-app
+spec:
+  selector:
+    matchLabels:
+        app: orderer4          
+  template:
+    metadata:
+      labels:
+        app: orderer4
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: genesis-block
+          configMap:
+            name: kubetest-genesis
+        containers:
+        - name: orderer4
+          image: hyperledger/fabric-orderer:1.4.6
+          command: ["sh","-c","orderer"]
+          env:
+          - name: ORDERER_GENERAL_LISTENADDRESS
+            value: 0.0.0.0
+          - name: CONFIGTX_ORDERER_ADDRESSES
+            value: '[orderer4:7050]'
+          - name: ORDERER_GENERAL_LISTENPORT
+            value: "7050"
+          - name: ORDERER_GENERAL_GENESISMETHOD
+            value: file
+          - name: ORDERER_GENERAL_GENESISFILE
+            value: /var/hyperledger/orderer/genesis.block
+          - name: ORDERER_GENERAL_LOCALMSPID
+            value: OrdererMSP
+          - name: ORDERER_GENERAL_LOCALMSPDIR
+            value: /var/hyperledger/orderer/msp
+          - name: ORDERER_GENERAL_TLS_ENABLED
+            value: "true"
+          - name: ORDERER_GENERAL_TLS_PRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_TLS_CERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_TLS_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE
+            value: /var/hyperledger/orderer/tls/server.crt
+          - name: ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY
+            value: /var/hyperledger/orderer/tls/server.key
+          - name: ORDERER_GENERAL_CLUSTER_ROOTCAS
+            value: '[/var/hyperledger/orderer/tls/ca.crt]'
+          ports:
+          - containerPort: 7050
+            name: orderer-port
+            protocol: TCP
+          volumeMounts:
+          - mountPath: /var/hyperledger/orderer/msp
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer4.perftest.com/msp
+          - mountPath: /var/hyperledger/orderer/tls
+            name: artifacts
+            subPath: ordererOrganizations/perftest.com/orderers/orderer4.perftest.com/tls
+          - mountPath: /var/hyperledger/orderer
+            name: genesis-block
+---
+
+#Services
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: orderer4-svc
+  name: orderer4
+  namespace: default
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 7050
+      nodePort: 30005
+      targetPort: 7050
+  selector:
+    app: orderer4
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: peer0-p1-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: peer0-p1-app         
+  template:
+    metadata:
+      labels:
+        app: peer0-p1-app
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: dockersocket
+          hostPath:
+            path: /var/run
+        containers:
+        - name: peer0-p1
+          image: hyperledger/fabric-peer:1.4.6
+          env:
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: CORE_METRICS_PROVIDER
+            value: prometheus
+          - name: CORE_OPERATIONS_LISTENADDRESS
+            value: 0.0.0.0:9443
+          - name: CORE_PEER_ADDRESS
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_GOSSIP_BOOTSTRAP
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_CHAINCODELISTENADDRESS
+            value: 0.0.0.0:7052
+          - name: CORE_PEER_GOSSIP_ORGLEADER
+            value: "false"
+          - name: CORE_PEER_GOSSIP_USELEADERELECTION
+            value: "true"
+          - name: CORE_PEER_ID
+            value: peer0-p1-app
+          - name: CORE_PEER_LOCALMSPID
+            value: p1MSP
+          - name: CORE_PEER_PROFILE_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_CERT_FILE
+            value: /etc/hyperledger/fabric/tls/server.crt
+          - name: CORE_PEER_TLS_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_KEY_FILE
+            value: /etc/hyperledger/fabric/tls/server.key
+          - name: CORE_PEER_TLS_ROOTCERT_FILE
+            value: /etc/hyperledger/fabric/tls/ca.crt
+          - name: CORE_VM_ENDPOINT
+            value: unix:///host/var/run/docker.sock
+          ports:
+          - containerPort: 7051
+          - containerPort: 7052
+          - containerPort: 7053
+          - containerPort: 9443
+          volumeMounts:
+          - mountPath: /host/var/run
+            name: dockersocket
+          - mountPath: /etc/hyperledger/fabric/msp
+            name: artifacts
+            subPath: peerOrganizations/p1.com/peers/peer0.p1.com/msp
+          - mountPath: /etc/hyperledger/fabric/tls
+            name: artifacts
+            subPath: peerOrganizations/p1.com/peers/peer0.p1.com/tls
+
+---
+#Peer Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.net13.service: peer0-p1-svc
+  name: peer0-p1
+spec:
+  type: NodePort
+  ports:
+  - name: "7051"
+    port: 7051
+    nodePort: 30101
+    targetPort: 7051
+  - name: "7052"
+    port: 7052
+    targetPort: 30102
+  - name: "7053"
+    port: 7053
+    nodePort: 30103
+    targetPort: 7053
+  - name: "9443"
+    port: 9443
+    nodePort: 30105
+    targetPort: 9443
+  selector:
+    app: peer0-p1-app
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: peer0-p2-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: peer0-p2-app         
+  template:
+    metadata:
+      labels:
+        app: peer0-p2-app
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        - name: dockersocket
+          hostPath:
+            path: /var/run
+        containers:
+        - name: peer0-p2
+          image: hyperledger/fabric-peer:1.4.6
+          env:
+          - name: FABRIC_LOGGING_SPEC
+            value: DEBUG
+          - name: CORE_METRICS_PROVIDER
+            value: prometheus
+          - name: CORE_OPERATIONS_LISTENADDRESS
+            value: 0.0.0.0:9443
+          - name: CORE_PEER_ADDRESS
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_GOSSIP_BOOTSTRAP
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_GOSSIP_EXTERNALENDPOINT
+            value: 0.0.0.0:7051
+          - name: CORE_PEER_CHAINCODELISTENADDRESS
+            value: 0.0.0.0:7052
+          - name: CORE_PEER_GOSSIP_ORGLEADER
+            value: "false"
+          - name: CORE_PEER_GOSSIP_USELEADERELECTION
+            value: "true"
+          - name: CORE_PEER_ID
+            value: peer0-p2-app
+          - name: CORE_PEER_LOCALMSPID
+            value: p2MSP
+          - name: CORE_PEER_PROFILE_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_CERT_FILE
+            value: /etc/hyperledger/fabric/tls/server.crt
+          - name: CORE_PEER_TLS_ENABLED
+            value: "true"
+          - name: CORE_PEER_TLS_KEY_FILE
+            value: /etc/hyperledger/fabric/tls/server.key
+          - name: CORE_PEER_TLS_ROOTCERT_FILE
+            value: /etc/hyperledger/fabric/tls/ca.crt
+          - name: CORE_VM_ENDPOINT
+            value: unix:///host/var/run/docker.sock
+          ports:
+          - containerPort: 7051
+          - containerPort: 7052
+          - containerPort: 7053
+          - containerPort: 9443
+          volumeMounts:
+          - mountPath: /host/var/run
+            name: dockersocket
+          - mountPath: /etc/hyperledger/fabric/msp
+            name: artifacts
+            subPath: peerOrganizations/p2.com/peers/peer0.p2.com/msp
+          - mountPath: /etc/hyperledger/fabric/tls
+            name: artifacts
+            subPath: peerOrganizations/p2.com/peers/peer0.p2.com/tls
+
+---
+#Peer Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.net13.service: peer0-p2-svc
+  name: peer0-p2
+spec:
+  type: NodePort
+  ports:
+  - name: "7051"
+    port: 7051
+    nodePort: 30201
+    targetPort: 7051
+  - name: "7052"
+    port: 7052
+    targetPort: 30202
+  - name: "7053"
+    port: 7053
+    nodePort: 30203
+    targetPort: 7053
+  - name: "9443"
+    port: 9443
+    nodePort: 30205
+    targetPort: 9443
+  selector:
+    app: peer0-p2-app
+
+---
+#CA Pods
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cap1-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cap1-app          
+  template:
+    metadata:
+      labels:
+        app: cap1-app 
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        containers:
+        - name: cap1
+          image: hyperledger/fabric-ca:1.4.6
+          command: ["sh","-c","fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.p1.com-cert.pem
+            --ca.keyfile /etc/hyperledger/fabric-ca-server-config/4e064a63b7c471ffb3ce716736e0aecbe67ee8d5df60eda9c759182d069a2ec7_sk
+            -b admin:adminpw -d"]
+          env:
+          - name: FABRIC_CA_HOME
+            value: /etc/hyperledger/fabric-ca-server
+          - name: FABRIC_CA_SERVER_CA_CERTFILE
+            value: /etc/hyperledger/fabric-ca-server-config/ca.p1.com-cert.pem
+          - name: FABRIC_CA_SERVER_CA_KEYFILE
+            value: /etc/hyperledger/fabric-ca-server-config/4e064a63b7c471ffb3ce716736e0aecbe67ee8d5df60eda9c759182d069a2ec7_sk
+          - name: FABRIC_CA_SERVER_CA_NAME
+            value: ca-p1
+          - name: FABRIC_CA_SERVER_TLS_CERTFILE
+            value: /etc/hyperledger/fabric-ca-server-config/ca.p1.com-cert.pem
+          - name: FABRIC_CA_SERVER_TLS_ENABLED
+            value: "true"
+          - name: FABRIC_CA_SERVER_TLS_KEYFILE
+            value: /etc/hyperledger/fabric-ca-server-config/4e064a63b7c471ffb3ce716736e0aecbe67ee8d5df60eda9c759182d069a2ec7_sk
+          ports:
+          - containerPort: 7054
+          volumeMounts:
+          - mountPath: /etc/hyperledger/fabric-ca-server-config
+            name: artifacts
+            subPath: peerOrganizations/p1.com/ca
+
+
+---
+#CA Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.net13.service: cap1
+  name: cap1
+spec:
+  type: NodePort
+  ports:
+  - name: "7054"
+    port: 7054
+    nodePort: 30104
+    targetPort: 7054
+  selector:
+    app: cap1-app   
+
+---
+#CA Pods
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cap2-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cap2-app          
+  template:
+    metadata:
+      labels:
+        app: cap2-app 
+    spec:
+        volumes:
+        - name: artifacts
+          persistentVolumeClaim:
+            claimName: pvc-fabric
+        containers:
+        - name: cap2
+          image: hyperledger/fabric-ca:1.4.6
+          command: ["sh","-c","fabric-ca-server start --ca.certfile /etc/hyperledger/fabric-ca-server-config/ca.p2.com-cert.pem
+            --ca.keyfile /etc/hyperledger/fabric-ca-server-config/772348a972bd4d2dec25c3f4bbe15b84e3fe80ed25638307000746fbb4256886_sk
+            -b admin:adminpw -d"]
+          env:
+          - name: FABRIC_CA_HOME
+            value: /etc/hyperledger/fabric-ca-server
+          - name: FABRIC_CA_SERVER_CA_CERTFILE
+            value: /etc/hyperledger/fabric-ca-server-config/ca.p2.com-cert.pem
+          - name: FABRIC_CA_SERVER_CA_KEYFILE
+            value: /etc/hyperledger/fabric-ca-server-config/772348a972bd4d2dec25c3f4bbe15b84e3fe80ed25638307000746fbb4256886_sk
+          - name: FABRIC_CA_SERVER_CA_NAME
+            value: ca-p2
+          - name: FABRIC_CA_SERVER_TLS_CERTFILE
+            value: /etc/hyperledger/fabric-ca-server-config/ca.p2.com-cert.pem
+          - name: FABRIC_CA_SERVER_TLS_ENABLED
+            value: "true"
+          - name: FABRIC_CA_SERVER_TLS_KEYFILE
+            value: /etc/hyperledger/fabric-ca-server-config/772348a972bd4d2dec25c3f4bbe15b84e3fe80ed25638307000746fbb4256886_sk
+          ports:
+          - containerPort: 7054
+          volumeMounts:
+          - mountPath: /etc/hyperledger/fabric-ca-server-config
+            name: artifacts
+            subPath: peerOrganizations/p2.com/ca
+
+
+---
+#CA Service
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    io.net13.service: cap2
+  name: cap2
+spec:
+  type: NodePort
+  ports:
+  - name: "7054"
+    port: 7054
+    nodePort: 30204
+    targetPort: 7054
+  selector:
+    app: cap2-app   
+
+---
